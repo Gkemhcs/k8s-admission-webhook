@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+generatorOptions:
+  
+  disableNameSuffixHash: true
+
+
+namespace: webhook-ns
+secretGenerator:
+- name: webhook-tls-cert
+  files:
+  - tls.crt=tls/certs/webhook.crt
+  - tls.key=tls/certs/webhook.key
+  type: "kubernetes.io/tls"
+  behavior: create
+
+
+resources:
+- config/base
+
+commonLabels:
+
+  app.kubernetes.io/name: webhook-server
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/owner: gkemhcs

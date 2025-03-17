@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: validating-webhook
+  namespace: webhook-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+       app: webhook-server
+  template:
+    metadata:
+      labels:
+        app: webhook-server
+    spec:
+      containers:
+        - name: webhook
+          image: webhook-server:latest
+          imagePullPolicy: Never
+          args:
+            - "--tls-cert-file=/etc/webhook/certs/tls.crt"
+            - "--tls-key-file=/etc/webhook/certs/tls.key"
+            - "--port=8080"
+          volumeMounts:
+            - name: certs
+              mountPath: /etc/webhook/certs
+              readOnly: true
+          ports:
+            - containerPort: 8080
+      volumes:
+        - name: certs
+          secret:
+            secretName: webhook-tls-cert
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-service
+  namespace: webhook-ns
+spec:
+  ports:
+    - port: 443
+      targetPort: 8080
+  selector:
+    app: webhook-server
